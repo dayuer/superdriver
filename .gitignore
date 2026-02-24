@@ -1,0 +1,39 @@
+# 依赖
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# iOS
+ios/Pods/
+ios/build/
+*.xcworkspace/xcuserdata/
+
+# Android (预留)
+android/app/build/
+android/build/
+*.apk
+
+# 编译产物
+*.tsbuildinfo
+*.js.map
+
+# 环境变量
+.env
+.env.local
+.env.*.local
+
+# 编辑器 / OS
+.DS_Store
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# 测试覆盖率
+coverage/
+
+# 包管理锁 (仅保留 package-lock.json)
+yarn.lock

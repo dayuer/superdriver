@@ -1,0 +1,14 @@
+{
+  "name": "@survival/agent-sdk",
+  "version": "0.1.0",
+  "private": true,
+  "description": "OpenClaw Agent SDK — 全能交互球 + WebSocket 通信 + 语音采集",
+  "main": "index.ts",
+  "types": "index.ts",
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-native": ">=0.73.0",
+    "expo": ">=52.0.0"
+  },
+  "keywords": ["openclaw", "agent", "sdk", "react-native"]
+}
