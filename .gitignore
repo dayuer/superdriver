@@ -37,3 +37,4 @@ coverage/
 
 # 包管理锁 (仅保留 package-lock.json)
 yarn.lock
+.agent/*
