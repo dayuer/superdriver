@@ -20,9 +20,10 @@ const { header } = ANIMATION;
 export interface WorkbenchScreenProps {
     profile?: UserProfile;
     onVoicePress?: () => void;
+    onRefresh?: () => Promise<void>;
 }
 
-export default function WorkbenchScreen({ profile, onVoicePress }: WorkbenchScreenProps) {
+export default function WorkbenchScreen({ profile, onVoicePress, onRefresh }: WorkbenchScreenProps) {
     // 使用自定义 Hooks 管理状态
     const {
         platforms,
@@ -53,8 +54,11 @@ export default function WorkbenchScreen({ profile, onVoicePress }: WorkbenchScre
     // 下拉刷新
     const handleRefresh = async () => {
         setRefreshing(true);
-        // 模拟刷新延迟
-        setTimeout(() => setRefreshing(false), 1000);
+        try {
+            await onRefresh?.();
+        } finally {
+            setRefreshing(false);
+        }
     };
 
     // 处理通知点击

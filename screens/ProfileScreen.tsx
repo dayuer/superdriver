@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { UserProfile } from '../types';
 import { getDriverProfile, DriverProfile } from '../services/recruitment-api';
+import { fetchWithCache, CACHE_CONFIG } from '../services/cache';
 import MyOrdersScreen from './MyOrdersScreen';
 
 // 导入子组件
@@ -68,7 +69,11 @@ export default function ProfileScreenNew({ profile, onRefresh }: ProfileScreenPr
     const loadDriverProfile = async () => {
         try {
             setLoading(true);
-            const driver = await getDriverProfile();
+            const driver = await fetchWithCache<DriverProfile | null>(
+                'driver_profile',
+                () => getDriverProfile(),
+                { ttl: CACHE_CONFIG.DEFAULT_TTL },
+            );
             setDriverProfile(driver);
         } catch (error) {
             console.log('No driver profile found');

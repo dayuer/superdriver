@@ -30,7 +30,9 @@ export type KnownCacheKey =
   | 'franchise'
   | 'profile'
   | 'agents'
-  | 'cities';
+  | 'cities'
+  | 'driver_profile'
+  | `service_events_${string}`;
 
 export type CacheKey = KnownCacheKey | (string & {});
 

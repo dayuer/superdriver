@@ -12,6 +12,7 @@ import { useState, useCallback } from 'react';
 import { getAgents, getChatList, getProfile, getIMSessions, markIMSessionsAsRead } from '../services/api';
 import { Agent, ChatListItem, UserProfile } from '../types';
 import { AGENT_NUMERIC_IDS, AGENT_ID_BY_NUMERIC, CORE_ADVISORS } from '../config/constants';
+import { fetchWithCache, CACHE_CONFIG } from '../services/cache';
 
 // ============================================================================
 // 聊天列表处理
@@ -150,8 +151,10 @@ interface UseAppDataReturn {
   chatListItems: ChatListItem[];
   profile: UserProfile | null;
   totalUnread: number;
-  /** 加载/刷新所有应用数据 */
+  /** 加载/刷新所有应用数据（使用缓存） */
   loadAppData: () => Promise<void>;
+  /** 强制刷新所有应用数据（跳过缓存） */
+  refreshAppData: () => Promise<void>;
   /** 标记所有消息为已读 */
   markAllRead: () => void;
 }
@@ -166,12 +169,22 @@ export function useAppData(): UseAppDataReturn {
 
   /**
    * 并行加载所有应用数据
+   * profile / agents 使用 SWR 缓存（变化频率低）
+   * chatList / imSessions 保持实时请求（未读数敏感）
    */
-  const loadAppData = useCallback(async () => {
+  const doLoad = useCallback(async (forceRefresh = false) => {
     try {
       const [p, agents, chats, imSessions] = await Promise.all([
-        getProfile().catch(() => null),
-        getAgents().catch(() => ({})),
+        fetchWithCache<UserProfile | null>(
+          'profile',
+          () => getProfile(),
+          { ttl: CACHE_CONFIG.DEFAULT_TTL, forceRefresh },
+        ).catch(() => null),
+        fetchWithCache<Record<string, Agent>>(
+          'agents',
+          () => getAgents(),
+          { ttl: CACHE_CONFIG.DEFAULT_TTL, forceRefresh },
+        ).catch(() => ({})),
         getChatList().catch(() => []),
         getIMSessions().catch(() => ({ sessions: [], total: 0, total_unread: 0 })),
       ]);
@@ -188,12 +201,18 @@ export function useAppData(): UseAppDataReturn {
     }
   }, []);
 
+  /** 常规加载（命中缓存则瞬间渲染） */
+  const loadAppData = useCallback(() => doLoad(false), [doLoad]);
+
+  /** 强制刷新（跳过缓存，下拉刷新场景） */
+  const refreshAppData = useCallback(() => doLoad(true), [doLoad]);
+
   /**
    * 标记所有消息为已读
    */
   const markAllRead = useCallback(() => {
     if (totalUnread > 0) {
-      markIMSessionsAsRead().catch(() => {}); // 静默处理
+      markIMSessionsAsRead().catch(() => { }); // 静默处理
       setTotalUnread(0);
     }
   }, [totalUnread]);
@@ -204,6 +223,7 @@ export function useAppData(): UseAppDataReturn {
     profile,
     totalUnread,
     loadAppData,
+    refreshAppData,
     markAllRead,
   };
 }

@@ -27,6 +27,7 @@ import TabBar, { TabId } from './components/TabBar';
 
 import { Agent } from './types';
 import { BASE_URL } from './services/api';
+import { preloadDevelopmentData } from './services/development';
 
 
 
@@ -40,7 +41,13 @@ export default function App() {
     const data = useAppData();
 
     useEffect(() => {
-        auth.onAuthReady(data.loadAppData);
+        auth.onAuthReady(async () => {
+            // 并行：主数据 + 发展中心预加载
+            await Promise.all([
+                data.loadAppData(),
+                preloadDevelopmentData(),
+            ]);
+        });
     }, [data.loadAppData]);
 
     // FAB 按下 → 直接开始语音
@@ -84,7 +91,7 @@ export default function App() {
     const renderContent = () => {
         switch (activeTab) {
             case 'mission':
-                return <WorkbenchScreen onVoicePress={handleVoicePress} />;
+                return <WorkbenchScreen onVoicePress={handleVoicePress} onRefresh={data.refreshAppData} />;
             case 'contacts':
                 return (
                     <ServiceScreen

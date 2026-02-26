@@ -12,6 +12,7 @@ import {
     markStepDone as apiMarkStepDone,
     generateSteps,
 } from '../services/service-api';
+import { fetchWithCache } from '../services/cache';
 
 export type ServiceFilter = 'all' | 'active' | 'closed';
 
@@ -53,20 +54,29 @@ export function useServiceEvents(): UseServiceEventsReturn {
     const isMounted = useRef(true);
     useEffect(() => () => { isMounted.current = false; }, []);
 
-    // 加载事件列表
+    // 加载事件列表（首页使用缓存加速，翻页不缓存）
     const loadEvents = useCallback(async (pageNum: number, append = false) => {
         const statusFilter = filter === 'active'
             ? ['consulting', 'evidence_collecting', 'negotiating', 'filing', 'litigation',
-               'reported', 'assessing', 'approved', 'paid', 'active', 'denied', 'appealing']
+                'reported', 'assessing', 'approved', 'paid', 'active', 'denied', 'appealing']
             : filter === 'closed'
-            ? ['closed']
-            : undefined;
+                ? ['closed']
+                : undefined;
 
-        const result = await getServiceEvents({
+        const fetchFn = () => getServiceEvents({
             status: statusFilter,
             page: pageNum,
             pageSize: 20,
         });
+
+        // 首页使用 1 分钟缓存加速首屏，翻页 / 刷新直接请求
+        const result = append
+            ? await fetchFn()
+            : await fetchWithCache(
+                `service_events_${filter}_p${pageNum}`,
+                fetchFn,
+                { ttl: 60 * 1000 },
+            );
 
         if (!isMounted.current) return;
 
@@ -87,12 +97,26 @@ export function useServiceEvents(): UseServiceEventsReturn {
         });
     }, [loadEvents]);
 
-    // 下拉刷新
+    // 下拉刷新 — 强制跳过缓存
     const refresh = useCallback(async () => {
         setIsRefreshing(true);
-        await loadEvents(1);
-        if (isMounted.current) setIsRefreshing(false);
-    }, [loadEvents]);
+        const statusFilter = filter === 'active'
+            ? ['consulting', 'evidence_collecting', 'negotiating', 'filing', 'litigation',
+                'reported', 'assessing', 'approved', 'paid', 'active', 'denied', 'appealing']
+            : filter === 'closed'
+                ? ['closed']
+                : undefined;
+        try {
+            const result = await getServiceEvents({ status: statusFilter, page: 1, pageSize: 20 });
+            if (isMounted.current) {
+                setEvents(result.events);
+                setHasMore(result.events.length >= 20);
+                setPage(1);
+            }
+        } finally {
+            if (isMounted.current) setIsRefreshing(false);
+        }
+    }, [filter]);
 
     // 加载更多
     const loadMore = useCallback(async () => {
