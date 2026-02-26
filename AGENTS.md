@@ -31,6 +31,18 @@ superdriver/
 │   ├── cargo/                       # 货运匹配模块 (3 文件)
 │   ├── chat/                        # 旧版聊天组件 (6 文件)
 │   ├── community/                   # 社区/招聘功能 (4 文件)
+│   ├── mud/                          # MUD 社区组件 (11 文件)
+│   │   ├── MudFeedScreen.tsx        #   传闻流主屏 (引导+档案+帖子流)
+│   │   ├── MudOnboarding.tsx        #   职业选择引导页
+│   │   ├── MudPostCard.tsx          #   武侠帖子卡片 (MUD/原文切换)
+│   │   ├── MudActionBar.tsx         #   烈酒/怒骂/围炉 三按钮
+│   │   ├── MudPlayerProfile.tsx     #   玩家档案 (职业/真气/碎银)
+│   │   ├── MudDisclaimer.tsx        #   免责声明条
+│   │   ├── MudBroadcast.tsx         #   全服播报 (轮播动画)
+│   │   ├── MudNpcEventCard.tsx      #   NPC 事件卡片
+│   │   ├── MudArenaScreen.tsx       #   恩怨台 (战斗+掉落)
+│   │   ├── MudScreens.tsx           #   悬赏/黑市/公会/语音 子屏
+│   │   └── index.ts                 #   模块导出
 │   ├── development/                 # 发展中心组件 (8 文件)
 │   ├── im/                          # IM 即时通讯模块 (7 文件)
 │   ├── omni-orb/                    # 全能交互球 (2 文件)
@@ -64,6 +76,7 @@ superdriver/
 │   ├── wechat.ts                    # 微信登录 + 分享
 │   ├── cache.ts                     # 内存 + 持久化缓存
 │   ├── community-api.ts             # 社区 API
+│   ├── mud-api.ts                   # MUD 社区 API (档案/NPC/恩怨台/悬赏/公会/商店/语音)
 │   ├── recruitment-api.ts           # 招聘 API
 │   ├── service-api.ts               # 服务事件 API
 │   ├── development.ts               # 发展中心 API
