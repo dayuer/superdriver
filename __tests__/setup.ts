@@ -13,6 +13,26 @@ jest.mock('react-native', () => ({
   Linking: { canOpenURL: jest.fn().mockResolvedValue(false) },
 }));
 
+// ── Expo Device ──
+// @alpha: expo-device 使用 ESM 语法，即使配置了 transformIgnorePatterns
+// 也依赖 expo-modules-core 的原生绑定，mock 更安全
+jest.mock('expo-device', () => ({
+  DeviceType: { PHONE: 1, TABLET: 2, DESKTOP: 3, TV: 4, UNKNOWN: 0 },
+  deviceType: 1,
+  brand: 'Apple',
+  modelName: 'iPhone 15',
+  osName: 'iOS',
+  osVersion: '18.0',
+}));
+
+// ── Expo Haptics ──
+jest.mock('expo-haptics', () => ({
+  impactAsync: jest.fn(),
+  notificationAsync: jest.fn(),
+  selectionAsync: jest.fn(),
+  ImpactFeedbackStyle: { Light: 'light', Medium: 'medium', Heavy: 'heavy' },
+}));
+
 // ── Expo Modules ──
 jest.mock('expo-secure-store', () => ({
   getItemAsync: jest.fn().mockResolvedValue(null),

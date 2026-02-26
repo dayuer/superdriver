@@ -20,11 +20,11 @@
 | 层 | 技术 | 版本 |
 | --- | --- | --- |
 | 框架 | Expo (React Native) | SDK 54 |
-| 语言 | TypeScript | 5.x |
-| IM | SQLite + API | 本地消息缓存 |
+| 语言 | TypeScript | 5.9 |
+| IM | SQLite (SQLCipher) + API | 本地加密消息缓存 |
 | 认证 | expo-secure-store | 安全 Token 存储 |
-| 动画 | Reanimated | latest |
-| 后端 | Next.js API + Lovrabet OpenAPI | [../backend](../backend) |
+| 动画 | Reanimated | 4.1 |
+| 后端 | Survival OS | [../survival](../survival) |
 
 ## 📱 页面架构
 
@@ -43,11 +43,9 @@
      │               ├── CommandDeck (仪表盘)
      │               └── 快捷操作面板
      │
-     └── IMScreen (微信风格 IM)
-         ├── IMChatList (会话列表)
-         ├── IMChatRoom (聊天室 — 群聊+私聊)
-         ├── IMContacts (联系人)
-         └── IMSettings (设置)
+     └── ServiceScreen (服务事件跟进)
+         ├── 事件列表 + 详情
+         └── 内嵌 Agent 对话
 ```
 
 ## 🎭 AI 专家团
@@ -66,26 +64,30 @@
 ```
 superdriver/
 ├── App.tsx                     # 根入口 + 导航
-├── components/
+├── components/                 # UI 组件库
+│   ├── service/                # 服务事件模块
 │   ├── im/                     # IM 模块 (WeChat-style)
-│   │   ├── IMScreen.tsx        # IM 主控制器
-│   │   ├── IMChatList.tsx      # 会话列表
-│   │   ├── IMChatRoom.tsx      # 聊天室
-│   │   └── IMContacts.tsx      # 联系人
 │   ├── workbench/              # 工作台组件
 │   ├── profile/                # 个人中心
 │   ├── development/            # 发展中心
 │   └── ui/                     # 通用 UI 组件
-├── services/
-│   ├── api.ts                  # API 调用封装
-│   ├── auth.ts                 # 认证状态管理
-│   ├── cache.ts                # 本地缓存
-│   └── database.ts             # SQLite 本地数据
-├── lib/
-│   └── security.ts             # Token 安全存储 + 签名
-├── styles/                     # 样式系统
+├── screens/                    # 页面级组件
+├── hooks/                      # 自定义 Hooks
+├── services/                   # API + 本地存储
+│   ├── api.ts                  # 主 API 实例 (auth + token refresh)
+│   └── db/                     # 模块化本地存储
+├── lib/                        # 安全工具 (签名/加密)
+├── packages/
+│   └── agent-sdk/              # @survival/agent-sdk
+├── config/                     # 配置中心
+├── styles/                     # 设计系统
+├── utils/                      # 工具函数
+├── __tests__/                  # 测试套件 (11 套件 / 121 用例)
+├── docs/                       # 项目文档 (Diátaxis)
 └── assets/                     # 静态资源
 ```
+
+> 详细架构参见 [`AGENTS.md`](AGENTS.md)
 
 ## 🚀 快速开始
 
@@ -96,21 +98,22 @@ npm install
 # iOS 模拟器
 npm run ios
 
-# Android 模拟器
-npm run android
+# 运行测试
+npm test
 ```
 
 ### 环境要求
 
 - Node.js 18+
 - Xcode 15+ (iOS)
-- 后端服务运行中 (`cd ../backend && npm run dev`)
+- 后端服务运行中 (`cd ../survival && npm run dev`)
 
 ## 📋 关联文档
 
 | 文档 | 位置 | 说明 |
 | --- | --- | --- |
+| 架构地图 | [`AGENTS.md`](AGENTS.md) | 完整目录结构 + 模块依赖 |
 | API 参考 | [`API_REFERENCE.md`](API_REFERENCE.md) | 客户端 API 调用手册 |
-| IM 模块 | [`components/im/README.md`](components/im/README.md) | 聊天模块指南 |
-| 安全审计 | [`docs/SECURITY_AUDIT_20260207.md`](docs/SECURITY_AUDIT_20260207.md) | 安全评估报告 |
-| 后端 API | [`../docs/api/README.md`](../docs/api/README.md) | API 接口总索引 |
+| 文档中心 | [`docs/README.md`](docs/README.md) | Diátaxis 四象限文档索引 |
+| 快速开始 | [`docs/getting-started/quickstart.md`](docs/getting-started/quickstart.md) | 环境搭建指南 |
+| 测试指南 | [`docs/guides/testing.md`](docs/guides/testing.md) | 编写和运行测试 |

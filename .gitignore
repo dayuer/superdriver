@@ -37,4 +37,8 @@ coverage/
 
 # 包管理锁 (仅保留 package-lock.json)
 yarn.lock
-.agent/*
+
+# team/ 工作流中间文件（归档后自动清理）
+team/*.md
+!team/archive/**
+
