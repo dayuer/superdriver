@@ -149,9 +149,9 @@ export async function getMudProfile(): Promise<MudProfile | null> {
     } catch { return null; }
 }
 
-/** 创建档案 (选职业) */
-export async function createMudProfile(profession: string): Promise<MudProfile> {
-    const res = await api.post('/community/mud-profile', { profession });
+/** 创建档案 (选职业 + 起名号) */
+export async function createMudProfile(profession: string, alias?: string): Promise<MudProfile> {
+    const res = await api.post('/community/mud-profile', { profession, alias });
     return unwrap(res);
 }
 
@@ -229,6 +229,18 @@ export async function publishBounty(data: {
 
 export async function takeBounty(bountyId: string): Promise<{ message: string }> {
     const res = await api.post('/community/bounties', { action: 'take', bountyId });
+    return unwrap(res);
+}
+
+/** 上报战果 — 截图识别订单 → 悬赏转化 */
+export async function uploadOrderScreenshot(
+    imageBase64: string,
+    mimeType: string = 'image/jpeg',
+): Promise<{ data: any }> {
+    const res = await api.post('/community/bounties/upload-screenshot', {
+        image: imageBase64,
+        mimeType,
+    });
     return unwrap(res);
 }
 
