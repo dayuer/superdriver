@@ -23,15 +23,18 @@ const unwrap = <T>(res: { data: { success?: boolean; data?: T } | T }): T => {
 // Types — 玩家档案
 // ============================================================================
 
+// @alpha: 对齐数据平台 mud_profiles 表 schema
 export interface MudProfile {
     id: string;
     userId: string;
-    profession: string;
+    professionCode: string;    // DB: profession_code (非 profession)
     rank: string;
     qi: number;
     silver: number;
-    dailyBattles: number;
-    factionCode: string | null;
+    equipment: string | null;  // DB: equipment (JSON)
+    battleCount: number;       // DB: battle_count (非 dailyBattles)
+    guildId: string | null;    // DB: guild_id
+    tenantId: string | null;   // DB: tenant_id
 }
 
 // ============================================================================
@@ -74,15 +77,21 @@ export interface BattleResult {
 // Types — 悬赏
 // ============================================================================
 
+// @alpha: 对齐数据平台 mud_bounties 表 schema
 export interface Bounty {
     id: string;
     publisherId: string;
     targetProfession: string;
     content: string;
-    mudContent: string | null;
+    mudContent: string | null;      // DB: mud_content
     reward: number;
-    status: string;
-    takerId: string | null;
+    status: string;                 // open | accepted | completed | expired | cancelled
+    takerId: string | null;         // DB: taker_id
+    takenAt: string | null;         // DB: taken_at
+    relatedOrderId: string | null;  // DB: related_order_id
+    geoLat: number | null;          // DB: geo_lat
+    geoLng: number | null;          // DB: geo_lng
+    tenantId: string | null;        // DB: tenant_id
 }
 
 // ============================================================================
@@ -170,15 +179,18 @@ export async function getNpcEvents(opts?: {
     return unwrap(res);
 }
 
-/** 上报拦路虎 */
+// @alpha: 对齐后端 POST /community/npc-events body 字段
 export async function reportRoadblock(data: {
-    npcType: string;
+    eventType?: string;
     description: string;
-    lat: number;
-    lng: number;
-}): Promise<{ event: NpcEvent; message: string }> {
-    const res = await api.post('/community/npc-events', data, {
-        params: { action: 'report' },
+    geoLat?: number;
+    geoLng?: number;
+}): Promise<{ eventId: string; eventType: string }> {
+    const res = await api.post('/community/npc-events', {
+        eventType: data.eventType || 'roadblock',
+        description: data.description,
+        geoLat: data.geoLat,
+        geoLng: data.geoLng,
     });
     return unwrap(res);
 }
@@ -218,17 +230,42 @@ export async function getBounties(opts?: {
     return unwrap(res);
 }
 
-export async function publishBounty(data: {
+/**
+ * @deprecated 悬赏通过订单转化产生（截图上报 → OCR → 悬赏转化），不支持手动发布
+ * @see uploadOrderScreenshot
+ */
+export async function publishBounty(_data: {
     targetProfession: string;
     content: string;
     reward?: number;
-}): Promise<{ bounty: Bounty; message: string }> {
-    const res = await api.post('/community/bounties', { action: 'publish', ...data });
+}): Promise<never> {
+    throw new Error('[MUD] 悬赏不支持手动发布，请使用「上报战果」截图识别流程');
+}
+
+// @alpha: 对齐后端 POST /community/bounties/{id}/accept (RESTful 路径参数)
+export async function takeBounty(bountyId: string): Promise<{
+    bountyId: string;
+    status: string;
+    takerId: string;
+    takenAt: string;
+}> {
+    const res = await api.post(`/community/bounties/${bountyId}/accept`);
     return unwrap(res);
 }
 
-export async function takeBounty(bountyId: string): Promise<{ message: string }> {
-    const res = await api.post('/community/bounties', { action: 'take', bountyId });
+// @alpha: 新增 — 对齐后端 POST /community/bounties/{id}/complete
+export async function completeBounty(bountyId: string): Promise<{
+    bountyId: string;
+    status: string;
+    reward: {
+        silver: number;
+        qi: number;
+        newSilver?: number;
+        newQi?: number;
+        newBattleCount?: number;
+    };
+}> {
+    const res = await api.post(`/community/bounties/${bountyId}/complete`);
     return unwrap(res);
 }
 

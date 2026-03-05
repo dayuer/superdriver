@@ -21,7 +21,8 @@ interface Props {
 }
 
 export default function MudPlayerProfile({ profile }: Props) {
-    const meta = PROF_META[profile.profession] || { emoji: '⚔️', name: '游侠', color: '#8E8E93' };
+    // @alpha: profession → professionCode 对齐 mud_profiles schema
+    const meta = PROF_META[profile.professionCode] || { emoji: '⚔️', name: '游侠', color: '#8E8E93' };
 
     return (
         <View style={s.container}>
@@ -45,8 +46,8 @@ export default function MudPlayerProfile({ profile }: Props) {
                 </View>
                 <View style={s.statDivider} />
                 <View style={s.stat}>
-                    <Text style={s.statValue}>{profile.dailyBattles}</Text>
-                    <Text style={s.statLabel}>今日战斗</Text>
+                    <Text style={s.statValue}>{profile.battleCount}</Text>
+                    <Text style={s.statLabel}>战斗</Text>
                 </View>
             </View>
         </View>
