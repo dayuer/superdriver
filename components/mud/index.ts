@@ -22,3 +22,9 @@ export {
     MudGuildScreen,
     MudVoiceInput,
 } from './MudScreens';
+
+// 游戏核心玩法
+export { default as MudCheckinCard } from './MudCheckinCard';
+export { default as MudExploreScreen } from './MudExploreScreen';
+export { default as MudAchievementsScreen } from './MudAchievementsScreen';
+export { default as MudLeaderboard } from './MudLeaderboard';

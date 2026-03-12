@@ -35,6 +35,13 @@ export interface MudProfile {
     battleCount: number;       // DB: battle_count (非 dailyBattles)
     guildId: string | null;    // DB: guild_id
     tenantId: string | null;   // DB: tenant_id
+    // ── 游戏核心玩法扩展 ──
+    experience: number;        // 累积经验值
+    level: number;             // 等级
+    lastActiveDate: string;    // 最后活跃日期 (YYYY-MM-DD)
+    checkinStreak: number;     // 连续签到天数
+    totalCheckins: number;     // 累计签到天数
+    exploreCount: number;      // 今日探索次数
 }
 
 // ============================================================================
@@ -370,4 +377,149 @@ export async function getFactions(): Promise<any[]> {
     const res = await api.get('/community/factions');
     const data = unwrap(res) as any;
     return data.factions || [];
+}
+
+// ============================================================================
+// 每日签到 API
+// ============================================================================
+
+export interface CheckinStatus {
+    checkedInToday: boolean;
+    streak: number;
+    total: number;
+    hasProfile: boolean;
+}
+
+export interface CheckinReward {
+    silver: number;
+    qi: number;
+    exp: number;
+}
+
+export interface CheckinResult {
+    reward: CheckinReward;
+    streak: number;
+    total: number;
+    profile: { silver: number; qi: number };
+    levelInfo: LevelInfo;
+}
+
+export interface LevelInfo {
+    experience: number;
+    level: number;
+    levelTitle: string;
+    leveled_up: boolean;
+}
+
+/** 查询今日签到状态 */
+export async function getCheckinStatus(): Promise<CheckinStatus> {
+    const res = await api.get('/community/daily-checkin');
+    return unwrap(res);
+}
+
+/** 执行签到 */
+export async function doCheckin(): Promise<CheckinResult> {
+    const res = await api.post('/community/daily-checkin');
+    return unwrap(res);
+}
+
+// ============================================================================
+// 探索 API
+// ============================================================================
+
+export interface ExploreEvent {
+    type: 'npc_encounter' | 'treasure' | 'trap';
+    description: string;
+}
+
+export interface ExploreResult {
+    event: ExploreEvent;
+    reward: { silver: number; qi: number; exp: number };
+    profile: { silver: number; qi: number; exploreCount: number };
+    levelInfo: LevelInfo;
+}
+
+/** 探索江湖 — 触发随机遭遇 */
+export async function explore(): Promise<ExploreResult> {
+    const res = await api.post('/community/explore');
+    return unwrap(res);
+}
+
+// ============================================================================
+// 成就 API
+// ============================================================================
+
+export interface Achievement {
+    id: string;
+    name: string;
+    description: string;
+    icon: string;
+    unlocked: boolean;
+}
+
+export interface AchievementsData {
+    achievements: Achievement[];
+    unlocked: number;
+    total: number;
+}
+
+/** 获取成就列表 */
+export async function getAchievements(): Promise<AchievementsData> {
+    const res = await api.get('/community/achievements');
+    return unwrap(res);
+}
+
+/** 触发成就检查 */
+export async function checkAchievements(): Promise<{ newlyUnlocked: { id: string; name: string; icon: string }[] }> {
+    const res = await api.post('/community/achievements/check');
+    return unwrap(res);
+}
+
+// ============================================================================
+// 排行榜 API
+// ============================================================================
+
+export interface RankingEntry {
+    rank: number;
+    userId: string;
+    profession: string;
+    level: number;
+    value: number;
+}
+
+export interface LeaderboardData {
+    type: string;
+    title: string;
+    rankings: RankingEntry[];
+}
+
+/** 获取排行榜 */
+export async function getLeaderboard(type: 'silver' | 'level' | 'battle' = 'silver'): Promise<LeaderboardData> {
+    const res = await api.get('/community/leaderboard', { params: { type } });
+    return unwrap(res);
+}
+
+// ============================================================================
+// 游戏状态总览 API
+// ============================================================================
+
+export interface GameStatus {
+    level: number;
+    levelTitle: string;
+    experience: number;
+    silver: number;
+    qi: number;
+    profession: string;
+    checkedInToday: boolean;
+    checkinStreak: number;
+    remainingBattles: number;
+    remainingExplores: number;
+    totalBattles: number;
+    totalCheckins: number;
+}
+
+/** 获取游戏状态聚合 */
+export async function getGameStatus(): Promise<GameStatus> {
+    const res = await api.get('/community/game-status');
+    return unwrap(res);
 }

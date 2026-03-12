@@ -20,7 +20,8 @@ import MudDisclaimer from './MudDisclaimer';
 import MudPlayerProfile from './MudPlayerProfile';
 import MudPostCard, { type MudPost } from './MudPostCard';
 import MudBroadcast from './MudBroadcast';
-import { getMudProfile, type MudProfile } from '../../services/mud-api';
+import MudCheckinCard from './MudCheckinCard';
+import { getMudProfile, getCheckinStatus, type MudProfile, type CheckinStatus } from '../../services/mud-api';
 import { getFeedPosts, mapToFeedPost } from '../../services/community-api';
 import { formatRelativeTime } from '../../utils/formatters';
 
@@ -30,6 +31,7 @@ export default function MudFeedScreen() {
     const [posts, setPosts] = useState<MudPost[]>([]);
     const [refreshing, setRefreshing] = useState(false);
     const [needsOnboarding, setNeedsOnboarding] = useState(false);
+    const [checkinStatus, setCheckinStatus] = useState<CheckinStatus | null>(null);
 
     // 初始化: 检查档案
     useEffect(() => {
@@ -40,6 +42,11 @@ export default function MudFeedScreen() {
             } else {
                 setProfile(p);
                 await loadPosts();
+                // 加载签到状态
+                try {
+                    const cs = await getCheckinStatus();
+                    setCheckinStatus(cs);
+                } catch { /* 忽略 */ }
             }
             setLoading(false);
         })();
@@ -106,6 +113,9 @@ export default function MudFeedScreen() {
                         <MudBroadcast />
                         <MudDisclaimer />
                         {profile && <MudPlayerProfile profile={profile} />}
+                        {checkinStatus && <MudCheckinCard status={checkinStatus} onCheckinComplete={() => {
+                            setCheckinStatus(s => s ? { ...s, checkedInToday: true } : s);
+                        }} />}
                     </>
                 }
                 refreshControl={

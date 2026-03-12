@@ -23,6 +23,8 @@ interface Props {
 export default function MudPlayerProfile({ profile }: Props) {
     // @alpha: profession → professionCode 对齐 mud_profiles schema
     const meta = PROF_META[profile.professionCode] || { emoji: '⚔️', name: '游侠', color: '#8E8E93' };
+    const level = profile.level ?? 1;
+    const levelTitle = level <= 5 ? '江湖新秀' : level <= 10 ? '行走游侠' : level <= 20 ? '一方豪杰' : '武林宗师';
 
     return (
         <View style={s.container}>
@@ -30,11 +32,18 @@ export default function MudPlayerProfile({ profile }: Props) {
                 <Text style={s.avatar}>{meta.emoji}</Text>
                 <View style={{ flex: 1 }}>
                     <Text style={s.rank}>{profile.rank}</Text>
-                    <Text style={[s.profession, { color: meta.color }]}>{meta.name}</Text>
+                    <Text style={[s.profession, { color: meta.color }]}>
+                        {meta.name} · Lv.{level} {levelTitle}
+                    </Text>
                 </View>
             </View>
 
             <View style={s.statsRow}>
+                <View style={s.stat}>
+                    <Text style={[s.statValue, { color: '#5856D6' }]}>{level}</Text>
+                    <Text style={s.statLabel}>等级</Text>
+                </View>
+                <View style={s.statDivider} />
                 <View style={s.stat}>
                     <Text style={s.statValue}>{profile.qi}</Text>
                     <Text style={s.statLabel}>真气</Text>
